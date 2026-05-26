@@ -180,7 +180,7 @@ canvas.sp{display:block;width:100%;height:90px;cursor:crosshair;touch-action:non
   <div class="row r4">
     <div class="fg"><label>Name <span class="r">*</span></label><input type="text" id="ec-name"></div>
     <div class="fg"><label>Relationship <span class="r">*</span></label><input type="text" id="ec-rel"></div>
-    <div class="fg"><label>Home Phone</label><input type="tel" id="ec-hphone" placeholder="(000) 000-0000"></div>
+    <div class="fg"><label>Home Phone <span class="r">*</span></label><input type="tel" id="ec-hphone" placeholder="(000) 000-0000"></div>
     <div class="fg"><label>Work Phone</label><input type="tel" id="ec-wphone" placeholder="(000) 000-0000"></div>
   </div>
 
@@ -361,7 +361,7 @@ canvas.sp{display:block;width:100%;height:90px;cursor:crosshair;touch-action:non
     <div class="sa"><button class="bclr" onclick="clearSig('sig-patient','ph-patient')">Clear</button></div>
     <div class="row r2" style="margin-top:10px">
       <div class="fg"><label>Date <span class="r">*</span></label><input type="date" id="sig-pt-date"></div>
-      <div class="fg"><label>Printed Name</label><input type="text" id="sig-pt-name"></div>
+      <div class="fg"><label>Printed Name <span class="r">*</span></label><input type="text" id="sig-pt-name"></div>
     </div>
   </div>
   <div class="sb">
@@ -875,6 +875,8 @@ function submitPatientForm() {
   var site = gv('site-of-care');
   if (!site) { alert('Please select a Site of Care.'); goTo(0); return; }
   if (!gv('pt-first') || !gv('pt-last')) { alert('Please enter patient first and last name.'); goTo(0); return; }
+  if (!gv('ec-hphone')) { alert('Please enter the emergency contact phone number.'); goTo(0); return; }
+  if (!gv('sig-pt-name')) { alert('Please enter the patient printed name on the Signatures page.'); goTo(3); return; }
   nx.textContent = 'Sending...'; nx.disabled = true;
 
   var data = collectAllData();
