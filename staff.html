@@ -191,7 +191,7 @@ canvas.sp{display:block;width:100%;height:70px;cursor:crosshair;touch-action:non
 // POWER AUTOMATE ENDPOINT FOR PDF UPLOAD
 // Paste your HTTP trigger URL here after getting Premium license
 // ================================================================
-var PA_STAFF_URL = 'https://calm-darkness-73c6.joyce-martin-mcoa.workers.dev/staff';
+var PA_STAFF_URL = 'https://purehealth-outpatientintake.joyce-969.workers.dev/staff';
  
 var ONEDRIVE_LINKS = {
   'Arlington':          'https://jadehealthcare-my.sharepoint.com/my?id=%2Fpersonal%2Fjoyce%5Fpurehlth%5Fcom%2FDocuments%2FOther%2FRehab%2FOutpatientIntake%2FArlington&viewid=a0c301d1%2D1a53%2D4745%2D9f5c%2Df57fefaae7fe',
@@ -383,7 +383,7 @@ function sendEmail(filename, pdfBase64, date, pdfDoc) {
   }
  
   // Send staff completion notification + log to Google Sheets
-  fetch('https://script.google.com/macros/s/AKfycbwCQfUTZldmS1aYEjgSla0jZ5111XvbPN9OD2dyxBBB8qQxxTm4vJO7AS8Dhq4JJ_Z7/exec', {
+  fetch('https://purehealth-outpatientintake.joyce-969.workers.dev/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
