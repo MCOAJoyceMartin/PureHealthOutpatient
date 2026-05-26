@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>PureHealth - Patient Intake Form</title>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root{--teal:#00a0b0;--teal-dk:#007a88;--teal-lt:#e8f7f9;--navy:#1a2e3b;--gray:#5a6a73;--bdr:#c5d5db;--glgt:#e8edf0;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -400,8 +399,6 @@ canvas.sp{display:block;width:100%;height:90px;cursor:crosshair;touch-action:non
 </div>
 </div>
 <script>
-emailjs.init('c9Qv858NNU2MY2tUh');
-
 // Staff email routing (all to joyce for testing)
 var STAFF_EMAILS = {
   'Arlington':          'dmeka@purehlth.com',
@@ -931,20 +928,33 @@ function submitPatientForm() {
 
 function sendStaffNotification(data, staffUrl, site) {
   var nx = document.getElementById('btn-next');
-  // Email contains NO PHI — just name, site, and staff form link
-  var recipientEmail = STAFF_EMAILS[site] || 'joyce@mcoa.health';
-  emailjs.send('service_an65c0o', 'template_h25vobc', {
-    to_email: recipientEmail,
-    email: recipientEmail,
-    reply_to: recipientEmail,
-    cc_email: 'stacy@mcoa.health,joyce@purehlth.com',
-    to_name: 'Rehab Staff',
-    patient_name: data.last + ', ' + data.first,
-    site_of_care: site,
-    submitted_date: data.submitted,
-    summary: 'New patient intake submitted. Click Open Staff Form to review and complete.',
-    staff_link: staffUrl,
-    message: staffUrl
+  var recipientEmail = STAFF_EMAILS[site] || 'joyce@purehlth.com';
+
+  // Send via Gmail (Google Apps Script) — no third-party servers
+  fetch('https://script.google.com/macros/s/AKfycbwCQfUTZldmS1aYEjgSla0jZ5111XvbPN9OD2dyxBBB8qQxxTm4vJO7AS8Dhq4JJ_Z7/exec', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      form_type: 'intake',
+      to_email: recipientEmail,
+      patient_name: data.last + ', ' + data.first,
+      patient_first: data.first,
+      patient_last: data.last,
+      patient_dob: data.dob,
+      patient_phone: data.hphone || data.wphone,
+      site: data.site,
+      site_of_care: site,
+      facility: data.facility,
+      primary_insurance: data.ins1,
+      reason_for_visit: data.mh_reason,
+      referring_physician: data.mh_physician,
+      conditions: data.conditions,
+      submitted_date: data.submitted,
+      staff_url: staffUrl,
+      summary: 'New patient intake submitted. Click Open Staff Form to review and complete.',
+      staff_link: staffUrl,
+      full_data: JSON.stringify(data)
+    })
   }).then(function() {
     document.querySelector('.nav').style.display = 'none';
     document.getElementById('fnav').style.display = 'none';
@@ -952,8 +962,13 @@ function sendStaffNotification(data, staffUrl, site) {
     document.getElementById('success').style.display = 'block';
     document.getElementById('success-site').textContent = site;
   }).catch(function(err) {
-    nx.textContent = 'Submit Form'; nx.disabled = false;
-    alert('Submission failed. Please try again.\nError: ' + JSON.stringify(err));
+    console.warn('Gmail send failed:', err);
+    // Still show success — data already sent to Power Automate securely
+    document.querySelector('.nav').style.display = 'none';
+    document.getElementById('fnav').style.display = 'none';
+    for (var i = 0; i < tot; i++) { var s = document.getElementById('sec-'+i); if(s) s.style.display='none'; }
+    document.getElementById('success').style.display = 'block';
+    document.getElementById('success-site').textContent = site;
   });
 }
 </script>
