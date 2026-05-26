@@ -868,7 +868,7 @@ function collectAllData() {
 // POWER AUTOMATE ENDPOINT
 // Paste your HTTP trigger URL here after getting Premium license
 // ================================================================
-var PA_URL = 'https://calm-darkness-73c6.joyce-martin-mcoa.workers.dev/intake';
+var PA_URL = 'https://purehealth-outpatientintake.joyce-969.workers.dev/intake';
 
 function submitPatientForm() {
   var nx = document.getElementById('btn-next');
@@ -933,7 +933,7 @@ function sendStaffNotification(data, staffUrl, site) {
   var recipientEmail = STAFF_EMAILS[site] || 'joyce@purehlth.com';
 
   // Send via Gmail (Google Apps Script) — no third-party servers
-  fetch('https://script.google.com/macros/s/AKfycbwCQfUTZldmS1aYEjgSla0jZ5111XvbPN9OD2dyxBBB8qQxxTm4vJO7AS8Dhq4JJ_Z7/exec', {
+  fetch('https://purehealth-outpatientintake.joyce-969.workers.dev/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
