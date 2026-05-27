@@ -219,7 +219,23 @@ function loadPatientData() {
   var hash = window.location.hash.replace('#','');
   if (!hash) { document.getElementById('no-data').style.display='block'; return; }
   try {
-    PT = JSON.parse(decodeURIComponent(escape(atob(hash))));
+    // Strip sigkey param if present in hash
+    var cleanHash = hash.split('&sigkey=')[0];
+    PT = JSON.parse(decodeURIComponent(escape(atob(cleanHash))));
+
+    // Load signature images from sessionStorage if available
+    var urlParams = new URLSearchParams(window.location.search);
+    var sigKey = urlParams.get('sigkey') || hash.split('&sigkey=')[1];
+    if (sigKey) {
+      try {
+        var sigData = JSON.parse(sessionStorage.getItem(decodeURIComponent(sigKey)));
+        if (sigData) {
+          PT.sig_patient_img = sigData.sig_patient_img || '';
+          PT.sig_resp_img = sigData.sig_resp_img || '';
+          PT.sig_media_img = sigData.sig_media_img || '';
+        }
+      } catch(se) { console.warn('Could not load signatures from storage:', se); }
+    }
     renderPatientPanel();
     document.getElementById('staff-section').style.display = 'block';
     document.getElementById('submit-bar').style.display = 'flex';
