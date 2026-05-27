@@ -887,26 +887,32 @@ function submitPatientForm() {
   var staffUrl = baseUrl + '/staff.html?d=' + encoded;
   data.staff_url = staffUrl;
 
-  // Encode signature images directly into the data for cross-device compatibility
+  // Store signatures in Google Apps Script and pass a short key instead
   try {
     var sigPatient = document.getElementById('sig-patient');
     var sigResp = document.getElementById('sig-resp');
     var sigMedia = document.getElementById('sig-media');
-    // Only include if actually signed (length > 5000 means real signature drawn)
-    if (sigPatient && sigPatient.toDataURL('image/png').length > 5000) {
-      data.sig_patient_img = sigPatient.toDataURL('image/png');
-    }
-    if (sigResp && sigResp.toDataURL('image/png').length > 5000) {
-      data.sig_resp_img = sigResp.toDataURL('image/png');
-    }
-    if (sigMedia && sigMedia.toDataURL('image/png').length > 5000) {
-      data.sig_media_img = sigMedia.toDataURL('image/png');
-    }
-    // Re-encode with signatures included
-    var encodedWithSigs = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-    staffUrl = baseUrl + '/staff.html?d=' + encodedWithSigs;
+    var sigKey = data.site.replace(/[^a-zA-Z0-9]/g,'') + '_' + data.last + '_' + data.submitted.replace(/-/g,'') + '_' + Date.now();
+
+    // Send signatures to Google Apps Script for temporary storage
+    var sigData = {
+      form_type: 'store_sigs',
+      sig_key: sigKey,
+      sig_patient_img: (sigPatient && sigPatient.toDataURL('image/png').length > 5000) ? sigPatient.toDataURL('image/png') : '',
+      sig_resp_img: (sigResp && sigResp.toDataURL('image/png').length > 5000) ? sigResp.toDataURL('image/png') : '',
+      sig_media_img: (sigMedia && sigMedia.toDataURL('image/png').length > 5000) ? sigMedia.toDataURL('image/png') : ''
+    };
+
+    fetch('https://purehealth-outpatientintake.joyce-969.workers.dev/email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sigData)
+    }).catch(function(e) { console.warn('Sig storage failed:', e); });
+
+    // Add sigkey to staff URL so staff form can retrieve signatures
+    staffUrl = baseUrl + '/staff.html?d=' + encoded + '&sk=' + encodeURIComponent(sigKey);
     data.staff_url = staffUrl;
-  } catch(e) { console.warn('Could not encode signatures:', e); }
+  } catch(e) { console.warn('Could not store signatures:', e); }
 
   // ── SECURE PATH: Send directly to Power Automate (HIPAA compliant) ──────────
   // All PHI goes directly into Microsoft 365 - never touches third-party servers
