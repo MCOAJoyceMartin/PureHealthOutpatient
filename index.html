@@ -860,10 +860,6 @@ function collectAllData() {
     sig_pt_date: gv('sig-pt-date'), sig_pt_name: gv('sig-pt-name'),
     sig_rp_date: gv('sig-rp-date'), sig_rp_rel: gv('sig-rp-rel'),
     sig_med_date: gv('sig-med-date'),
-    // Capture signature images from canvas
-    sig_patient_img: (function(){ var c=document.getElementById('sig-patient'); return c?c.toDataURL('image/png'):''; })(),
-    sig_resp_img: (function(){ var c=document.getElementById('sig-resp'); return c?c.toDataURL('image/png'):''; })(),
-    sig_media_img: (function(){ var c=document.getElementById('sig-media'); return c?c.toDataURL('image/png'):''; })(),
     submitted: new Date().toISOString().slice(0,10)
   };
 }
@@ -890,6 +886,22 @@ function submitPatientForm() {
   var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
   var staffUrl = baseUrl + '/staff.html#' + encoded;
   data.staff_url = staffUrl;
+
+  // Store signature images separately in sessionStorage (too large for URL)
+  try {
+    var sigPatient = document.getElementById('sig-patient');
+    var sigResp = document.getElementById('sig-resp');
+    var sigMedia = document.getElementById('sig-media');
+    var sigKey = 'ph_sigs_' + data.submitted;
+    sessionStorage.setItem(sigKey, JSON.stringify({
+      sig_patient_img: sigPatient ? sigPatient.toDataURL('image/png') : '',
+      sig_resp_img: sigResp ? sigResp.toDataURL('image/png') : '',
+      sig_media_img: sigMedia ? sigMedia.toDataURL('image/png') : '',
+      key: sigKey
+    }));
+    staffUrl = staffUrl + '&sigkey=' + encodeURIComponent(sigKey);
+    data.staff_url = staffUrl;
+  } catch(e) { console.warn('Could not store signatures:', e); }
 
   // ── SECURE PATH: Send directly to Power Automate (HIPAA compliant) ──────────
   // All PHI goes directly into Microsoft 365 - never touches third-party servers
