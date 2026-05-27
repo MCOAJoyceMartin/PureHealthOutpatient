@@ -216,16 +216,17 @@ var PT = null;
 
 // ── Load patient data from URL hash ──────────────────────────────────────────
 function loadPatientData() {
-  var hash = window.location.hash.replace('#','');
-  if (!hash) { document.getElementById('no-data').style.display='block'; return; }
+  // Try query parameter first (?d=), then fall back to hash (#)
+  var urlParams = new URLSearchParams(window.location.search);
+  var encoded = urlParams.get('d') || window.location.hash.replace('#','');
+
+  if (!encoded) { document.getElementById('no-data').style.display='block'; return; }
   try {
-    // Strip sigkey param if present in hash
-    var cleanHash = hash.split('&sigkey=')[0];
-    PT = JSON.parse(decodeURIComponent(escape(atob(cleanHash))));
+    var cleanEncoded = encoded.split('&sigkey=')[0];
+    PT = JSON.parse(decodeURIComponent(escape(atob(cleanEncoded))));
 
     // Load signature images from sessionStorage if available
-    var urlParams = new URLSearchParams(window.location.search);
-    var sigKey = urlParams.get('sigkey') || hash.split('&sigkey=')[1];
+    var sigKey = urlParams.get('sigkey');
     if (sigKey) {
       try {
         var sigData = JSON.parse(sessionStorage.getItem(decodeURIComponent(sigKey)));
