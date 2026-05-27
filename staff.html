@@ -153,11 +153,7 @@ canvas.sp{display:block;width:100%;height:70px;cursor:crosshair;touch-action:non
     <h2>Completed &amp; Downloaded!</h2>
     <p>PDF saved as <strong id="success-filename"></strong></p>
     <p style="font-size:12px;color:#999">Notification sent to intake team.</p>
-    <div class="onedrive-card">
-      <h3>&#128194; Upload to OneDrive — <span id="od-site-name"></span></h3>
-      <p>Open the folder below, then drag and drop the downloaded PDF into it.</p>
-      <div id="od-link-container"></div>
-    </div>
+
     <div class="status-steps">
       <div class="step">
         <div class="step-icon step-done">&#10003;</div>
@@ -167,10 +163,7 @@ canvas.sp{display:block;width:100%;height:70px;cursor:crosshair;touch-action:non
         <div class="step-icon step-done">&#10003;</div>
         <div class="step-info"><h4>Email Sent</h4><p>Intake team notified.</p></div>
       </div>
-      <div class="step">
-        <div class="step-icon step-pending">&#8679;</div>
-        <div class="step-info"><h4>Upload PDF to OneDrive</h4><p>Open the folder above and upload the PDF.</p></div>
-      </div>
+
     </div>
   </div>
 </div>
@@ -322,7 +315,7 @@ function handleSubmit() {
   btn.textContent = 'Generating PDF...'; btn.disabled = true;
 
   try {
-    var filename = (PT.site||'Site').replace(/[^a-zA-Z0-9]/g,'_')+'_'+(PT.first||'')+'_'+(PT.last||'')+'.pdf';
+    var filename = (PT.site||'Site').replace(/[^a-zA-Z0-9]/g,'_')+'_'+(PT.first||'')+'_'+(PT.last||'')+'_'+date.replace(/-/g,'')+'.pdf';
     var pdfDoc = buildPDF(filename, date);
     var pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
 
@@ -400,16 +393,7 @@ function showSuccess(filename) {
   document.getElementById('success-filename').textContent = filename;
   document.getElementById('step1-label').textContent = filename + ' saved to your Downloads folder.';
 
-  var site = PT.site || '';
-  document.getElementById('od-site-name').textContent = site;
-
-  var odUrl = ONEDRIVE_LINKS[site] || '';
-  var container = document.getElementById('od-link-container');
-  if (odUrl && odUrl.indexOf('PLACEHOLDER') === -1) {
-    container.innerHTML = '<a class="btn-onedrive" href="'+odUrl+'" target="_blank">&#128194; Open OneDrive &mdash; '+site+'</a>';
-  } else {
-    container.innerHTML = '<div class="btn-onedrive-placeholder">&#128194; OneDrive folder not yet configured for '+site+'</div><p style="font-size:11px;color:#999;margin-top:8px;">Add the SharePoint link for '+site+' in staff.html ONEDRIVE_LINKS.</p>';
-  }
+  // OneDrive upload handled via email to joyce@purehlth.com
 }
 
 // ── Build PDF ─────────────────────────────────────────────────────────────────
@@ -524,42 +508,40 @@ function buildPDF(filename, date) {
 
   // ── Patient Signatures ──
   sectionBar('Patient Signatures');
+  var halfW = (W - margin*2 - 10) / 2;
 
-  // Helper to add a signature block
-  function addSigBlock(label, sigImg, printedName, sigDate, xPos, blockW) {
-    checkPage(80);
-    // Signature image
+  function drawSigBlock(label, sigImg, printedName, sigDate, xPos, blockW) {
+    checkPage(85);
+    var topY = y;
+    // Draw signature image if available
     if (sigImg && sigImg.length > 2000) {
-      try {
-        doc.addImage(sigImg, 'PNG', xPos, y, blockW, 35);
-      } catch(e) {}
+      try { doc.addImage(sigImg, 'PNG', xPos, topY, blockW * 0.75, 35); } catch(e) {}
     }
     // Signature line
     doc.setDrawColor(30,30,30); doc.setLineWidth(0.5);
-    doc.line(xPos, y+38, xPos+blockW, y+38);
-    // Label
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(80,80,80);
-    doc.text(label, xPos, y+48);
+    doc.line(xPos, topY+38, xPos+blockW, topY+38);
+    // Label below line
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(60,60,60);
+    doc.text(label, xPos, topY+49);
     // Printed name
     if (printedName) {
       doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
-      doc.text(printedName, xPos, y+57);
+      doc.text(printedName, xPos, topY+59);
     }
     // Date
     if (sigDate) {
       doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(110,110,110);
-      doc.text('Date: ' + sigDate, xPos, y+66);
+      doc.text('Date: ' + sigDate, xPos, topY+69);
     }
   }
 
-  var halfW = (W - margin*2 - 10) / 2;
-  // Patient signature (left) + Responsible Party (right)
-  addSigBlock('Patient / Legal Guardian', d.sig_patient_img, d.sig_pt_name, d.sig_pt_date, margin, halfW);
-  addSigBlock('Responsible Party', d.sig_resp_img, d.sig_rp_rel, d.sig_rp_date, margin + halfW + 10, halfW);
-  y += 75;
-  // Media consent signature (left)
-  addSigBlock('Media & Privacy Consent', d.sig_media_img, '', d.sig_med_date, margin, halfW);
-  y += 75;
+  // Row 1: Patient + Responsible Party
+  drawSigBlock('Patient / Legal Guardian', d.sig_patient_img, d.sig_pt_name, d.sig_pt_date, margin, halfW);
+  drawSigBlock('Responsible Party', d.sig_resp_img, d.sig_rp_rel ? d.sig_rp_rel : '—', d.sig_rp_date, margin + halfW + 10, halfW);
+  y += 80;
+  // Row 2: Media consent
+  drawSigBlock('Media & Privacy Consent', d.sig_media_img, '', d.sig_med_date, margin, halfW);
+  y += 80;
 
   // ── PAGE 2: Staff Use Only ──
   doc.addPage(); y=margin;
@@ -602,12 +584,18 @@ function buildPDF(filename, date) {
       doc.addImage(sigData,'PNG',sigLineX,y-40,sigLineW,40);
     }
   }
-  // Signature line + label
+  // Signature line + label + printed name
   doc.setDrawColor(30,30,30);
   doc.setLineWidth(1);
   doc.line(sigLineX,y,sigLineX+sigLineW,y);
   doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(30,30,30);
   doc.text('Staff Member',sigLineX,y+14);
+  // Print name below label
+  var staffPrintedName = gv('s-sig-name') || '';
+  if (staffPrintedName) {
+    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+    doc.text(staffPrintedName, sigLineX, y+26);
+  }
 
   // Date line + label
   doc.line(dateLineX,y,W-margin,y);
