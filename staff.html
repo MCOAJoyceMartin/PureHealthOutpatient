@@ -218,17 +218,19 @@ function loadPatientData() {
     var cleanEncoded = encoded.split('&sigkey=')[0];
     PT = JSON.parse(decodeURIComponent(escape(atob(cleanEncoded))));
 
-    // Load signature images from sessionStorage if available
-    var sigKey = urlParams.get('sigkey');
+    // Load signature images from Google Apps Script by key
+    var sigKey = urlParams.get('sk');
     if (sigKey) {
-      try {
-        var sigData = JSON.parse(sessionStorage.getItem(decodeURIComponent(sigKey)));
-        if (sigData) {
-          PT.sig_patient_img = sigData.sig_patient_img || '';
-          PT.sig_resp_img = sigData.sig_resp_img || '';
-          PT.sig_media_img = sigData.sig_media_img || '';
-        }
-      } catch(se) { console.warn('Could not load signatures from storage:', se); }
+      fetch('https://script.google.com/macros/s/AKfycbykNcRP3tg8mLb29sW6kvOlTbg5LVsOu204FwtZlZ1AxMm1RV9SGQVwyGTqdl4SYVQNYA/exec?sk=' + encodeURIComponent(sigKey))
+        .then(function(r){ return r.json(); })
+        .then(function(sigData) {
+          if (sigData && !sigData.error) {
+            PT.sig_patient_img = sigData.sig_patient_img || '';
+            PT.sig_resp_img = sigData.sig_resp_img || '';
+            PT.sig_media_img = sigData.sig_media_img || '';
+          }
+        })
+        .catch(function(e){ console.warn('Could not fetch signatures:', e); });
     }
     renderPatientPanel();
     document.getElementById('staff-section').style.display = 'block';
