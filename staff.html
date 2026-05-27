@@ -505,6 +505,45 @@ function buildPDF(filename, date) {
   field2('Privacy Acknowledged',d.privacy_ack,'Activities Photo',d.act_photo);
   field1('Media Authorization',d.media_auth||'None');
 
+  // ── Patient Signatures ──
+  sectionBar('Patient Signatures');
+
+  // Helper to add a signature block
+  function addSigBlock(label, sigImg, printedName, sigDate, xPos, blockW) {
+    checkPage(80);
+    // Signature image
+    if (sigImg && sigImg.length > 2000) {
+      try {
+        doc.addImage(sigImg, 'PNG', xPos, y, blockW, 35);
+      } catch(e) {}
+    }
+    // Signature line
+    doc.setDrawColor(30,30,30); doc.setLineWidth(0.5);
+    doc.line(xPos, y+38, xPos+blockW, y+38);
+    // Label
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(80,80,80);
+    doc.text(label, xPos, y+48);
+    // Printed name
+    if (printedName) {
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+      doc.text(printedName, xPos, y+57);
+    }
+    // Date
+    if (sigDate) {
+      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(110,110,110);
+      doc.text('Date: ' + sigDate, xPos, y+66);
+    }
+  }
+
+  var halfW = (W - margin*2 - 10) / 2;
+  // Patient signature (left) + Responsible Party (right)
+  addSigBlock('Patient / Legal Guardian', d.sig_patient_img, d.sig_pt_name, d.sig_pt_date, margin, halfW);
+  addSigBlock('Responsible Party', d.sig_resp_img, d.sig_rp_rel, d.sig_rp_date, margin + halfW + 10, halfW);
+  y += 75;
+  // Media consent signature (left)
+  addSigBlock('Media & Privacy Consent', d.sig_media_img, '', d.sig_med_date, margin, halfW);
+  y += 75;
+
   // ── PAGE 2: Staff Use Only ──
   doc.addPage(); y=margin;
 
