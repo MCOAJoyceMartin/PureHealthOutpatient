@@ -1140,10 +1140,16 @@ function sendStaffNotification(data, staffUrl, site) {
         pdf_base64: pdfBase64,
         full_data: JSON.stringify(data)
       })
-    }).then(function() {
-      console.log('Intake notification (with PDF) sent to ' + recipient);
+    }).then(function(res) {
+      return res.text().then(function(body) {
+        if (res.ok) {
+          console.log('Intake notification (with PDF) sent to ' + recipient + ' \u2014 HTTP ' + res.status);
+        } else {
+          console.error('Intake notification to ' + recipient + ' FAILED \u2014 HTTP ' + res.status + ': ' + body);
+        }
+      });
     }).catch(function(err) {
-      console.warn('Gmail send to ' + recipient + ' failed:', err);
+      console.warn('Intake notification to ' + recipient + ' failed (network error):', err);
     });
   });
 
