@@ -363,10 +363,16 @@ function sendEmail(filename, pdfBase64, date, pdfDoc) {
         summary: 'Staff form completed for ' + d.site + ' by ' + (gv('s-sig-name')||'staff') + '. PDF attached.',
         staff_link: 'Staff assessment completed. PDF: ' + filename
       })
-    }).then(function() {
-      console.log('Staff completion notification sent to ' + recipient);
+    }).then(function(res) {
+      return res.text().then(function(body) {
+        if (res.ok) {
+          console.log('Staff completion notification sent to ' + recipient + ' \u2014 HTTP ' + res.status);
+        } else {
+          console.error('Staff completion notification to ' + recipient + ' FAILED \u2014 HTTP ' + res.status + ': ' + body);
+        }
+      });
     }).catch(function(e) {
-      console.warn('Staff notification to ' + recipient + ' failed:', e);
+      console.warn('Staff notification to ' + recipient + ' failed (network error):', e);
     });
   });
 }
