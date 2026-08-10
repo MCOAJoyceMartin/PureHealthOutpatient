@@ -236,7 +236,7 @@ function loadPatientData() {
     window.sigsLoaded = false;
     window.sigsPromise = Promise.resolve();
     if (sigKey) {
-      window.sigsPromise = fetch('https://script.google.com/macros/s/AKfycbykNcRP3tg8mLb29sW6kvOlTbg5LVsOu204FwtZlZ1AxMm1RV9SGQVwyGTqdl4SYVQNYA/exec?sk=' + encodeURIComponent(sigKey))
+      window.sigsPromise = fetch('https://script.google.com/macros/s/AKfycbwQn4y7NExqVvyVAxbWjrAMyM4iMFxaaXveG7CZXg0BgFGOQjuOBKs3Cxar3PyFkFHkYw/exec?sk=' + encodeURIComponent(sigKey))
         .then(function(r){ return r.json(); })
         .then(function(sigData) {
           if (sigData && !sigData.error) {
