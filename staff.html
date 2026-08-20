@@ -128,29 +128,33 @@ canvas.sp{display:block;width:100%;height:70px;cursor:crosshair;touch-action:non
     <input type="text" class="notation-line" id="notation-2" placeholder=" ">
   </div>
 
-  <!-- Staff Member signature + Date -->
-  <div class="sig-row">
-    <div class="sig-block">
+  <!-- Staff Member signature + Print Name + Date — all aligned -->
+  <div style="display:grid;grid-template-columns:1fr auto 200px;align-items:end;gap:24px;margin-top:8px;">
+
+    <!-- Signature -->
+    <div style="display:flex;flex-direction:column;">
       <div class="sig-canvas-wrap">
         <canvas class="sp" id="sig-staff"></canvas>
         <div class="sph" id="ph-staff">Sign here...</div>
       </div>
-      <button class="bclr" onclick="clearSig()">Clear</button>
-      <div class="sig-label">Staff Member</div>
+      <button class="bclr" onclick="clearSig()" style="text-align:right;">Clear</button>
+      <div style="font-size:12px;color:var(--navy);margin-top:6px;padding-top:6px;border-top:1.5px solid var(--navy);">Staff Member Signature</div>
     </div>
 
-    <div class="sig-spacer"></div>
-
-    <div class="date-block">
-      <input type="date" class="date-input" id="s-date">
-      <div class="date-label">Date</div>
+    <!-- Print Name -->
+    <div style="display:flex;flex-direction:column;min-width:180px;">
+      <input type="text" id="s-sig-name" placeholder="Printed Name *"
+        style="border:none;border-bottom:1.5px solid var(--navy);padding:4px 0;font-size:14px;color:var(--navy);background:transparent;outline:none;width:100%;">
+      <div style="font-size:12px;color:var(--navy);margin-top:6px;padding-top:6px;border-top:1.5px solid transparent;">Print Name</div>
     </div>
-  </div>
 
-  <!-- Printed name below signature -->
-  <div style="margin-top:20px;">
-    <input type="text" class="notation-line" id="s-sig-name" placeholder="Printed Name *" style="font-size:14px;">
-    <div style="font-size:12px;color:var(--navy);margin-top:4px;">Print Name</div>
+    <!-- Date -->
+    <div style="display:flex;flex-direction:column;">
+      <input type="date" id="s-date"
+        style="border:none;border-bottom:1.5px solid var(--navy);padding:4px 0;font-size:14px;color:var(--navy);background:transparent;outline:none;width:100%;">
+      <div style="font-size:12px;color:var(--navy);margin-top:6px;padding-top:6px;border-top:1.5px solid transparent;">Date</div>
+    </div>
+
   </div>
 </div>
 
