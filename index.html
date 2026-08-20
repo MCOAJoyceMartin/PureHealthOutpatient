@@ -1090,20 +1090,26 @@ function submitPatientForm() {
       sig_media_img: (sigMedia && sigMedia.toDataURL('image/png').length > 5000) ? sigMedia.toDataURL('image/png') : ''
     };
 
+    // Add sigkey to staff URL so staff form can retrieve signatures
+    staffUrl = baseUrl + '/staff.html?d=' + encoded + '&sk=' + encodeURIComponent(sigKey);
+    data.staff_url = staffUrl;
+
+    // Wait for signature storage to finish (success or failure) BEFORE sending
+    // the staff notification, so staff never receives a link before the
+    // signatures actually exist server-side.
     fetch('https://purehealth-outpatientintake.joyce-969.workers.dev/email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sigData)
-    }).catch(function(e) { console.warn('Sig storage failed:', e); });
-
-    // Add sigkey to staff URL so staff form can retrieve signatures
-    staffUrl = baseUrl + '/staff.html?d=' + encoded + '&sk=' + encodeURIComponent(sigKey);
-    data.staff_url = staffUrl;
-  } catch(e) { console.warn('Could not store signatures:', e); }
-
-  // Send staff notification email
-  sendStaffNotification(data, staffUrl, site);
-
+    }).catch(function(e) {
+      console.warn('Sig storage failed:', e);
+    }).then(function() {
+      sendStaffNotification(data, staffUrl, site);
+    });
+  } catch(e) {
+    console.warn('Could not store signatures:', e);
+    sendStaffNotification(data, staffUrl, site);
+  }
 }
 
 function sendStaffNotification(data, staffUrl, site) {
