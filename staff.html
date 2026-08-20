@@ -128,35 +128,29 @@ canvas.sp{display:block;width:100%;height:70px;cursor:crosshair;touch-action:non
     <input type="text" class="notation-line" id="notation-2" placeholder=" ">
   </div>
 
-  <!-- Staff Signature Row: Signature | Print Name | Date -->
-  <div style="display:flex;gap:24px;align-items:flex-end;margin-top:16px;flex-wrap:wrap;">
-
-    <!-- Signature pad — takes most space -->
-    <div style="flex:2;min-width:220px;display:flex;flex-direction:column;">
-      <div style="border-bottom:1.5px solid var(--navy);position:relative;height:80px;background:#fff;">
-        <canvas class="sp" id="sig-staff" style="display:block;width:100%;height:80px;cursor:crosshair;touch-action:none;"></canvas>
-        <div id="ph-staff" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-style:italic;color:#ccc;font-size:13px;pointer-events:none;">Sign here...</div>
+  <!-- Staff Member signature + Date -->
+  <div class="sig-row">
+    <div class="sig-block">
+      <div class="sig-canvas-wrap">
+        <canvas class="sp" id="sig-staff"></canvas>
+        <div class="sph" id="ph-staff">Sign here...</div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-        <div style="font-size:12px;color:var(--navy);font-weight:600;">Staff Member Signature</div>
-        <button class="bclr" onclick="clearSig()">Clear</button>
-      </div>
+      <button class="bclr" onclick="clearSig()">Clear</button>
+      <div class="sig-label">Staff Member</div>
     </div>
 
-    <!-- Print Name -->
-    <div style="flex:1;min-width:160px;display:flex;flex-direction:column;">
-      <input type="text" id="s-sig-name" placeholder="Printed Name *"
-        style="border:none;border-bottom:1.5px solid var(--navy);padding:6px 0;font-size:13px;color:var(--navy);background:transparent;outline:none;width:100%;">
-      <div style="font-size:12px;color:var(--navy);margin-top:4px;font-weight:600;">Print Name</div>
-    </div>
+    <div class="sig-spacer"></div>
 
-    <!-- Date -->
-    <div style="flex:0 0 160px;display:flex;flex-direction:column;">
-      <input type="date" id="s-date"
-        style="border:none;border-bottom:1.5px solid var(--navy);padding:6px 0;font-size:13px;color:var(--navy);background:transparent;outline:none;width:100%;">
-      <div style="font-size:12px;color:var(--navy);margin-top:4px;font-weight:600;">Date</div>
+    <div class="date-block">
+      <input type="date" class="date-input" id="s-date">
+      <div class="date-label">Date</div>
     </div>
+  </div>
 
+  <!-- Printed name below signature -->
+  <div style="margin-top:20px;">
+    <input type="text" class="notation-line" id="s-sig-name" placeholder="Printed Name *" style="font-size:14px;">
+    <div style="font-size:12px;color:var(--navy);margin-top:4px;">Print Name</div>
   </div>
 </div>
 
@@ -327,9 +321,9 @@ function initSigPad() {
   sigCtx.strokeStyle='#1a2e3b'; sigCtx.lineWidth=2;
   sigCtx.lineCap='round'; sigCtx.lineJoin='round';
   function pos(e){
-    var r=sigCv.getBoundingClientRect(),sx=sigCv.width/r.width,sy=sigCv.height/r.height;
-    if(e.touches)return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
-    return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+    var r=sigCv.getBoundingClientRect();
+    if(e.touches)return{x:(e.touches[0].clientX-r.left),y:(e.touches[0].clientY-r.top)};
+    return{x:(e.clientX-r.left),y:(e.clientY-r.top)};
   }
   sigCv.addEventListener('mousedown',function(e){sigDrawing=true;var p=pos(e);sigLx=p.x;sigLy=p.y;ph.style.display='none';});
   sigCv.addEventListener('mousemove',function(e){if(!sigDrawing)return;var p=pos(e);sigCtx.beginPath();sigCtx.moveTo(sigLx,sigLy);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();sigLx=p.x;sigLy=p.y;});
@@ -414,6 +408,7 @@ function sendEmail(filename, pdfBase64, date, pdfDoc) {
       form_type: 'staff',
       to_email: STAFF_EMAILS[d.site] || 'joyce@purehlth.com',
       staff_recipient: STAFF_EMAILS[d.site] || 'joyce@purehlth.com',
+      cc_email: 'joyce@purehlth.com,stacy@mcoa.health',
       patient_name: d.last+', '+d.first,
       patient_first: d.first,
       patient_last: d.last,
@@ -422,6 +417,7 @@ function sendEmail(filename, pdfBase64, date, pdfDoc) {
       notation1: note1,
       notation2: note2,
       filename: filename,
+      completed_form_url: window.location.href,
       staff_name: gv('s-sig-name'),
       pdf_base64: pdfBase64Attach,
       summary: 'Staff form completed for ' + d.site + ' by ' + (gv('s-sig-name')||'staff') + '. PDF attached.',
