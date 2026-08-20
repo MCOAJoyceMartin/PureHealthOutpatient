@@ -802,9 +802,9 @@ function initPad(cid, pid) {
   var ctx = cv.getContext('2d');
   var drawing = false, lx = 0, ly = 0;
   function pos(e) {
-    var r = cv.getBoundingClientRect(), sx = cv.width/r.width, sy = cv.height/r.height;
-    if (e.touches) return {x:(e.touches[0].clientX-r.left)*sx, y:(e.touches[0].clientY-r.top)*sy};
-    return {x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy};
+    var r = cv.getBoundingClientRect();
+    if (e.touches) return {x:(e.touches[0].clientX-r.left), y:(e.touches[0].clientY-r.top)};
+    return {x:(e.clientX-r.left), y:(e.clientY-r.top)};
   }
   var ratio = window.devicePixelRatio || 1;
   cv.width = cv.offsetWidth * ratio; cv.height = cv.offsetHeight * ratio;
