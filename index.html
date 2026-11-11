@@ -802,9 +802,9 @@ function initPad(cid, pid) {
   var ctx = cv.getContext('2d');
   var drawing = false, lx = 0, ly = 0;
   function pos(e) {
-    var r = cv.getBoundingClientRect();
-    if (e.touches) return {x:(e.touches[0].clientX-r.left), y:(e.touches[0].clientY-r.top)};
-    return {x:(e.clientX-r.left), y:(e.clientY-r.top)};
+    var r = cv.getBoundingClientRect(), sx = cv.width/r.width, sy = cv.height/r.height;
+    if (e.touches) return {x:(e.touches[0].clientX-r.left)*sx, y:(e.touches[0].clientY-r.top)*sy};
+    return {x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy};
   }
   var ratio = window.devicePixelRatio || 1;
   cv.width = cv.offsetWidth * ratio; cv.height = cv.offsetHeight * ratio;
@@ -1071,7 +1071,7 @@ function submitPatientForm() {
   // Build staff link with patient data encoded in URL
   var baseUrl = window.location.href.replace('index.html','').replace(/\/+$/, '');
   var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-  var staffUrl = baseUrl + '/staff.html?d=' + encoded;
+  var staffUrl = baseUrl + '/staff.html?d=' + encodeURIComponent(encoded);
   data.staff_url = staffUrl;
 
   // Store signatures in Google Apps Script and pass a short key instead
@@ -1090,26 +1090,20 @@ function submitPatientForm() {
       sig_media_img: (sigMedia && sigMedia.toDataURL('image/png').length > 5000) ? sigMedia.toDataURL('image/png') : ''
     };
 
-    // Add sigkey to staff URL so staff form can retrieve signatures
-    staffUrl = baseUrl + '/staff.html?d=' + encoded + '&sk=' + encodeURIComponent(sigKey);
-    data.staff_url = staffUrl;
-
-    // Wait for signature storage to finish (success or failure) BEFORE sending
-    // the staff notification, so staff never receives a link before the
-    // signatures actually exist server-side.
     fetch('https://purehealth-outpatientintake.joyce-969.workers.dev/email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sigData)
-    }).catch(function(e) {
-      console.warn('Sig storage failed:', e);
-    }).then(function() {
-      sendStaffNotification(data, staffUrl, site);
-    });
-  } catch(e) {
-    console.warn('Could not store signatures:', e);
-    sendStaffNotification(data, staffUrl, site);
-  }
+    }).catch(function(e) { console.warn('Sig storage failed:', e); });
+
+    // Add sigkey to staff URL so staff form can retrieve signatures
+    staffUrl = baseUrl + '/staff.html?d=' + encodeURIComponent(encoded) + '&sk=' + encodeURIComponent(sigKey);
+    data.staff_url = staffUrl;
+  } catch(e) { console.warn('Could not store signatures:', e); }
+
+  // Send staff notification email
+  sendStaffNotification(data, staffUrl, site);
+
 }
 
 function sendStaffNotification(data, staffUrl, site) {
